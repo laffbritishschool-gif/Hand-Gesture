@@ -27,38 +27,80 @@ function setGestureLabel(label, feedback = label) {
 }
 
 // Bind device permission actions before initializing optional 3D/map features.
+let cameraStream = null;
+let cameraStarting = false;
+
 async function requestCamera() {
-  if (tracker) {
-    tracker.stop();
+  if (cameraStarting) return;
+
+  // Stop only when a real stream is already active.
+  if (cameraStream) {
+    tracker?.stop();
     tracker = null;
+    cameraStream.getTracks().forEach((track) => track.stop());
+    cameraStream = null;
+    const video = $("webcam");
+    video.pause();
+    video.srcObject = null;
     $("camera-button").textContent = "ENABLE CAMERA";
+    $("onboarding-camera").textContent = "ENABLE CAMERA";
     $("camera-state").textContent = "Camera offline";
     $("camera-placeholder").classList.remove("hidden");
     $("camera-live").classList.remove("visible");
     $("permission-camera-status").textContent = "Camera stopped";
     return;
   }
-  const buttons = [$("camera-button"), $("onboarding-camera")];
-  buttons.forEach((button) => { if (button) button.disabled = true; });
-  $("camera-state").textContent = "Waiting for browser permission…";
+
+  const buttons = [$("camera-button"), $("onboarding-camera")].filter(Boolean);
+  if (!window.isSecureContext) {
+    const message = "Camera access needs HTTPS. Open this website using its secure https:// address.";
+    $("camera-state").textContent = "Secure connection required";
+    $("permission-camera-status").textContent = message;
+    showToast(message);
+    return;
+  }
+  if (!navigator.mediaDevices?.getUserMedia) {
+    const message = "This browser cannot access a camera. Use the latest Chrome and allow camera access.";
+    $("camera-state").textContent = "Camera not supported";
+    $("permission-camera-status").textContent = message;
+    showToast(message);
+    return;
+  }
+
+  cameraStarting = true;
+  buttons.forEach((button) => { button.disabled = true; });
+  $("camera-state").textContent = "Waiting for camera permission…";
   $("permission-camera-status").textContent = "Waiting for browser permission…";
+  let pendingStream = null;
+
   try {
-    // getUserMedia is invoked immediately from this real button click.
-    const stream = await navigator.mediaDevices.getUserMedia({
+    // This call is deliberately made directly inside the user's button click flow.
+    pendingStream = await navigator.mediaDevices.getUserMedia({
       audio: false,
       video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } }
     });
+
     const video = $("webcam");
-    video.srcObject = stream;
+    cameraStream = pendingStream;
+    video.muted = true;
+    video.playsInline = true;
+    video.srcObject = cameraStream;
     await video.play();
+
+    // Confirm the actual video track is live before reporting success.
+    const videoTrack = cameraStream.getVideoTracks()[0];
+    if (!videoTrack || videoTrack.readyState !== "live") {
+      throw new Error("The webcam opened but did not provide a live video track.");
+    }
+
     $("camera-placeholder").classList.add("hidden");
     $("camera-live").classList.add("visible");
     $("camera-state").textContent = "Camera online";
     $("permission-camera-status").textContent = "Camera enabled";
     $("onboarding-camera").textContent = "CAMERA ENABLED";
     $("camera-button").textContent = "STOP CAMERA";
-    // The stream is now visibly active. Start gesture tracking using the
-    // existing stream rather than requesting camera permission a second time.
+
+    // Gesture tracking is optional: it must never switch off a working webcam.
     tracker = new HandTracking({
       video,
       onStatus: (message) => { $("camera-state").textContent = message; },
@@ -75,24 +117,31 @@ async function requestCamera() {
         }
       }
     });
-    tracker.stream = stream;
-    await tracker.start();
+    tracker.stream = cameraStream;
+    tracker.start().catch((error) => {
+      console.warn("Hand tracking could not start; webcam remains active:", error);
+      setGestureLabel("Camera is on — gesture tracking unavailable", error.message || "Hand tracking could not start");
+      $("camera-state").textContent = "Camera online";
+    });
   } catch (error) {
+    pendingStream?.getTracks().forEach((track) => track.stop());
+    cameraStream = null;
     const reason = error.name === "NotAllowedError"
-      ? "Camera permission was blocked. Set Camera to Allow in Chrome site settings and try again."
+      ? "Camera permission was denied. Click the camera icon in Chrome's address bar and set Camera to Allow."
       : error.name === "NotFoundError"
         ? "No camera was found. Connect or enable a webcam."
         : error.name === "NotReadableError"
-          ? "The camera is busy in another app. Close other camera apps and retry."
-          : !navigator.mediaDevices?.getUserMedia
-            ? "Camera requires HTTPS (or localhost) in a supported browser."
+          ? "The camera is busy in another app. Close other camera apps and try again."
+          : error.name === "OverconstrainedError"
+            ? "The webcam does not support the requested video settings. Try another camera."
             : (error.message || "Unable to start camera.");
     $("camera-state").textContent = "Camera unavailable";
     $("permission-camera-status").textContent = reason;
     $("gesture-state").textContent = reason;
     showToast(reason);
   } finally {
-    buttons.forEach((button) => { if (button) button.disabled = false; });
+    cameraStarting = false;
+    buttons.forEach((button) => { button.disabled = false; });
   }
 }
 function requestLocation() {
