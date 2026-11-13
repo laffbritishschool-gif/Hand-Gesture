@@ -100,10 +100,7 @@ export class HandTracking {
       this.previousPalmX = null;
       const now = performance.now();
       if (now - this.lastPointAt > 900) {
-        const rect = this.video.getBoundingClientRect();
-        const x = rect.left + (1 - index.x) * rect.width;
-        const y = rect.top + index.y * rect.height;
-        this.onGesture?.({ type: "point", x, y, landmarks });
+        this.onGesture?.({ type: "point", x: 1 - index.x, y: index.y, landmarks });
         this.lastPointAt = now;
       }
     } else {
