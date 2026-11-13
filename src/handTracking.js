@@ -62,8 +62,11 @@ export class HandTracking {
         this.landmarker = await HandLandmarker.createFromOptions(vision, options);
       }
     } catch (error) {
-      this.stop();
-      throw new Error("The camera opened, but hand tracking could not load. Check your internet connection and try again.");
+      // Keep the webcam stream alive even if the optional hand-tracking
+      // model cannot be downloaded or initialized.
+      console.error("Hand-tracking model failed to load:", error);
+      this.onTrackingStatus?.("Camera is on — hand tracking unavailable. Check your internet connection.");
+      return;
     }
 
     this.running = true;
