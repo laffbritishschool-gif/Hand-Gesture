@@ -1,5 +1,4 @@
 import "maplibre-gl/dist/maplibre-gl.css";
-import "./style.css";
 import { createHoloMap, searchPlace } from "./map.js";
 import { HandTracking } from "./handTracking.js";
 import { createHologram } from "./hologram.js";
