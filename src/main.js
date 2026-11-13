@@ -49,12 +49,16 @@ $("camera-button").addEventListener("click", async () => {
     video: $("webcam"),
     onStatus: (message) => {
       $("camera-state").textContent = message;
-      if (message.startsWith("Camera active")) {
+      if (message === "Camera online") {
         $("camera-placeholder").classList.add("hidden");
         $("camera-live").classList.add("visible");
         $("camera-button").textContent = "STOP CAMERA";
-        setGestureLabel("Show one hand", "Hand tracking active");
+        setGestureLabel("Loading hand tracking", "Camera preview is live");
       }
+    },
+    onTrackingStatus: (message) => {
+      $("gesture-state").textContent = message;
+      $("gesture-feedback").textContent = message;
     },
     onGesture: (gesture) => {
       switch (gesture.type) {
