@@ -4,7 +4,14 @@ import { HandTracking } from "./handTracking.js";
 import { createHologram } from "./hologram.js";
 
 const $ = (id) => document.getElementById(id);
-const mapController = createHoloMap();
+let mapController;
+try {
+  mapController = createHoloMap();
+} catch (error) {
+  console.error('Map initialization failed:', error);
+  $('map-status').textContent = 'MAP UNAVAILABLE';
+  mapController = { map: { resize() {}, on() {} }, reset() {}, rotate() {}, zoom() {}, selectAt() {}, flyTo() {}, toggleBuildings() {}, toggleLabels() {} };
+}
 // Keep the map and camera controls working even if a device cannot create
 // the optional Three.js hologram WebGL layer.
 let hologram;
@@ -82,7 +89,24 @@ $("camera-button").addEventListener("click", async () => {
     $("camera-placeholder").classList.remove("hidden");
     $("camera-live").classList.remove("visible");
     $("camera-button").textContent = "TRY AGAIN";
-    showToast(error.message || "Unable to start the camera. Check browser permissions.");
+    let reason = error.message || "Unable to start the camera."; 
+    if (error.name === "NotAllowedError" || error.name === "PermissionDeniedError") {
+      reason = "Chrome is blocking camera access. Open the site settings beside the address bar, set Camera to Allow, then reload."; 
+      $("camera-state").textContent = "Camera permission blocked";
+    } else if (error.name === "NotFoundError" || error.name === "DevicesNotFoundError") {
+      reason = "No camera was detected. Connect or enable a webcam, then try again."; 
+      $("camera-state").textContent = "No camera detected";
+    } else if (error.name === "NotReadableError" || error.name === "TrackStartError") {
+      reason = "Your camera is being used by another app. Close other camera apps or tabs and try again."; 
+      $("camera-state").textContent = "Camera is busy";
+    } else if (error.name === "SecurityError" || !navigator.mediaDevices?.getUserMedia) {
+      reason = "Camera access requires a secure HTTPS page. Open the deployed HTTPS website."; 
+      $("camera-state").textContent = "Secure connection required";
+    } else {
+      $("camera-state").textContent = "Camera could not start";
+    }
+    $("gesture-state").textContent = reason;
+    showToast(reason);
   } finally {
     $("camera-button").disabled = false;
   }
