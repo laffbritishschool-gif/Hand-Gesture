@@ -20,16 +20,18 @@ export class HandTracking {
   }
 
   async start() {
-    if (!navigator.mediaDevices?.getUserMedia) {
-      throw new Error("Camera access requires HTTPS or localhost and a supported browser.");
-    }
-
-    // Start the webcam first so the user sees the live preview immediately.
+    // Reuse a stream already opened by the welcome permission button.
+    // Otherwise request access here for the standalone camera control.
     this.onStatus?.("Camera starting…");
-    this.stream = await navigator.mediaDevices.getUserMedia({
-      audio: false,
-      video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } }
-    });
+    if (!this.stream) {
+      if (!navigator.mediaDevices?.getUserMedia) {
+        throw new Error("Camera access requires HTTPS or localhost and a supported browser.");
+      }
+      this.stream = await navigator.mediaDevices.getUserMedia({
+        audio: false,
+        video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } }
+      });
+    }
     this.video.srcObject = this.stream;
     await this.video.play();
     this.onStatus?.("Camera online");
