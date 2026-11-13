@@ -38,7 +38,7 @@ function showToast(message) {
   toastTimer = setTimeout(() => toast.classList.remove("visible"), 3200);
 }
 
-$("camera-button").addEventListener("click", async () => {
+async function requestCamera() {
   if (tracker) {
     tracker.stop();
     tracker = null;
@@ -106,10 +106,17 @@ $("camera-button").addEventListener("click", async () => {
       $("camera-state").textContent = "Camera could not start";
     }
     $("gesture-state").textContent = reason;
+    $("permission-camera-status").textContent = reason;
     showToast(reason);
   } finally {
     $("camera-button").disabled = false;
   }
+}
+
+$("camera-button").addEventListener("click", requestCamera);
+$("onboarding-camera").addEventListener("click", async () => {
+  await requestCamera();
+  if (tracker) { $("permission-camera-status").textContent = "Camera enabled"; $("onboarding-camera").textContent = "CAMERA ENABLED"; }
 });
 
 $("reset-view").addEventListener("click", () => mapController.reset());
@@ -137,23 +144,31 @@ $("search-form").addEventListener("submit", async (event) => {
   }
 });
 
-$("locate-button").addEventListener("click", () => {
+function requestLocation() {
   if (!navigator.geolocation) { showToast("Location services are not available in this browser."); return; }
   $("locate-button").textContent = "◎ Finding your location…";
+  $("permission-location-status").textContent = "Requesting location permission…";
   navigator.geolocation.getCurrentPosition(
     ({ coords }) => {
       mapController.flyTo([coords.longitude, coords.latitude], 15);
       $("map-location").textContent = "Your current location";
+      $("permission-location-status").textContent = "Location shared successfully";
+      $("onboarding-location").textContent = "LOCATION ENABLED";
       $("locate-button").textContent = "◎ Use my current location";
       showToast("Map centered on your location.");
     },
     (error) => {
       $("locate-button").textContent = "◎ Use my current location";
-      showToast(error.code === 1 ? "Location permission was denied." : "Could not get your location.");
+      const reason = error.code === 1 ? "Location permission was denied. Allow Location in the site settings." : "Could not get your location. Check your device location settings.";
+      $("permission-location-status").textContent = reason;
+      showToast(reason);
     },
     { enableHighAccuracy: true, timeout: 10000 }
   );
-});
+}
+$("locate-button").addEventListener("click", requestLocation);
+$("onboarding-location").addEventListener("click", requestLocation);
+$("onboarding-continue").addEventListener("click", () => $("permission-welcome").classList.add("hidden"));
 
 $("help-button").addEventListener("click", () => { $("help-panel").hidden = false; });
 $("close-help").addEventListener("click", () => { $("help-panel").hidden = true; });
@@ -169,6 +184,8 @@ window.addEventListener("beforeunload", () => { tracker?.stop(); hologram.destro
 // Camera permission must be requested from a real user gesture.
 // A simulated page-load click is rejected by modern browsers.
 $("camera-state").textContent = "Camera permission needed";
+$("permission-camera-status").textContent = "Waiting for permission";
+$("permission-location-status").textContent = "Waiting for permission";
 $("gesture-state").textContent = "Click ENABLE CAMERA and allow access in your browser.";
 $("camera-placeholder").querySelector("span:last-child").textContent = "CLICK ENABLE CAMERA";
 $("camera-button").textContent = "ENABLE CAMERA";
