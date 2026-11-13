@@ -9,6 +9,26 @@
     <title>HoloDesk — Gesture Interface</title>
   </head>
   <body>
+    <section class="permission-welcome" id="permission-welcome" role="dialog" aria-modal="true" aria-labelledby="permission-title">
+      <div class="permission-panel">
+        <div class="permission-mark">H<span>·</span>D</div>
+        <p class="permission-kicker">HOLODESK / DEVICE SETUP</p>
+        <h2 id="permission-title">Let's set up your experience.</h2>
+        <p class="permission-copy">Allow camera access for hand gestures and share your location to center the map on where you are.</p>
+        <div class="permission-option">
+          <div class="permission-symbol">◎</div>
+          <div class="permission-option-copy"><strong>Camera access</strong><small>Live preview and hand-gesture control</small><span id="permission-camera-status">Waiting for permission</span></div>
+          <button id="onboarding-camera" class="permission-action">ENABLE CAMERA</button>
+        </div>
+        <div class="permission-option">
+          <div class="permission-symbol">⌖</div>
+          <div class="permission-option-copy"><strong>Your location</strong><small>Center the map on your current position</small><span id="permission-location-status">Waiting for permission</span></div>
+          <button id="onboarding-location" class="permission-action">SHARE LOCATION</button>
+        </div>
+        <button id="onboarding-continue" class="permission-continue">CONTINUE TO HOLODESK</button>
+        <p class="permission-footnote">Your camera video is processed in this browser. Location is used to position the map.</p>
+      </div>
+    </section>
     <div class="app-shell">
       <header class="topbar">
         <a class="brand" href="/" aria-label="HoloDesk home">
