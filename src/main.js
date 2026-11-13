@@ -141,12 +141,22 @@ window.addEventListener("holodesk:location", ({ detail }) => {
   showToast(`Selected: ${detail.lat.toFixed(5)}°, ${detail.lng.toFixed(5)}°`);
 });
 window.addEventListener("beforeunload", () => { tracker?.stop(); hologram.destroy(); });
+
+// Ask for camera permission as soon as HoloDesk opens. Map loading continues
+// independently, so denying camera access never prevents map use.
+window.addEventListener("load", () => {
+  $("camera-button").click();
+}, { once: true });
 window.addEventListener("resize", () => mapController.map.resize());
 
 mapController.map.on("load", () => {
   $("map-location").textContent = "Lagos, Nigeria";
+  $("map-status").textContent = "MAP READY";
   mapController.map.resize();
 });
 mapController.map.on("error", (event) => {
   console.error("HoloDesk map error:", event.error || event);
+  $("map-status").textContent = "MAP ISSUE";
+  const detail = event.error?.message || "Map tiles or style could not load.";
+  showToast(detail);
 });
