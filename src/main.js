@@ -5,7 +5,16 @@ import { createHologram } from "./hologram.js";
 
 const $ = (id) => document.getElementById(id);
 const mapController = createHoloMap();
-const hologram = createHologram($("hologram-layer"));
+// Keep the map and camera controls working even if a device cannot create
+// the optional Three.js hologram WebGL layer.
+let hologram;
+try {
+  hologram = createHologram($("hologram-layer"));
+} catch (error) {
+  console.warn("Holographic effects are unavailable on this device:", error);
+  hologram = { setVisible() {}, destroy() {} };
+  $("hologram-layer").style.display = "none";
+}
 let tracker = null;
 let toastTimer = null;
 
