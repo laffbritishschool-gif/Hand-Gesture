@@ -142,11 +142,12 @@ window.addEventListener("holodesk:location", ({ detail }) => {
 });
 window.addEventListener("beforeunload", () => { tracker?.stop(); hologram.destroy(); });
 
-// Ask for camera permission as soon as HoloDesk opens. Map loading continues
-// independently, so denying camera access never prevents map use.
-window.addEventListener("load", () => {
-  $("camera-button").click();
-}, { once: true });
+// Camera permission must be requested from a real user gesture.
+// A simulated page-load click is rejected by modern browsers.
+$("camera-state").textContent = "Camera permission needed";
+$("gesture-state").textContent = "Click ENABLE CAMERA and allow access in your browser.";
+$("camera-placeholder").querySelector("span:last-child").textContent = "CLICK ENABLE CAMERA";
+$("camera-button").textContent = "ENABLE CAMERA";
 window.addEventListener("resize", () => mapController.map.resize());
 
 mapController.map.on("load", () => {
