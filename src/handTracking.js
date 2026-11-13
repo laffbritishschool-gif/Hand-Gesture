@@ -22,32 +22,40 @@ export class HandTracking {
     if (!navigator.mediaDevices?.getUserMedia) {
       throw new Error("Camera access requires HTTPS or localhost and a supported browser.");
     }
-    this.onStatus?.("Loading hand-tracking model…");
-    const vision = await FilesetResolver.forVisionTasks(
-      `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${WASM_VERSION}/wasm`
-    );
-    const options = {
-      baseOptions: { modelAssetPath: MODEL_URL, delegate: "GPU" },
-      runningMode: "VIDEO",
-      numHands: 1,
-      minHandDetectionConfidence: 0.55,
-      minHandPresenceConfidence: 0.55,
-      minTrackingConfidence: 0.5
-    };
-    try {
-      this.landmarker = await HandLandmarker.createFromOptions(vision, options);
-    } catch (gpuError) {
-      // Some browsers or devices cannot initialize the GPU delegate.
-      options.baseOptions.delegate = "CPU";
-      this.landmarker = await HandLandmarker.createFromOptions(vision, options);
-    }
 
+    // Start the webcam first so the user sees the live preview immediately.
+    this.onStatus?.("Requesting camera permission…");
     this.stream = await navigator.mediaDevices.getUserMedia({
       audio: false,
       video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } }
     });
     this.video.srcObject = this.stream;
     await this.video.play();
+    this.onStatus?.("Camera active — loading hand tracking…");
+
+    try {
+      const vision = await FilesetResolver.forVisionTasks(
+        `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${WASM_VERSION}/wasm`
+      );
+      const options = {
+        baseOptions: { modelAssetPath: MODEL_URL, delegate: "GPU" },
+        runningMode: "VIDEO",
+        numHands: 1,
+        minHandDetectionConfidence: 0.55,
+        minHandPresenceConfidence: 0.55,
+        minTrackingConfidence: 0.5
+      };
+      try {
+        this.landmarker = await HandLandmarker.createFromOptions(vision, options);
+      } catch (gpuError) {
+        options.baseOptions.delegate = "CPU";
+        this.landmarker = await HandLandmarker.createFromOptions(vision, options);
+      }
+    } catch (error) {
+      this.stop();
+      throw new Error("The camera opened, but hand tracking could not load. Check your internet connection and try again.");
+    }
+
     this.running = true;
     this.onStatus?.("Camera active — show one hand");
     this.detect();
@@ -75,7 +83,6 @@ export class HandTracking {
     const middle = landmarks[12];
     const ring = landmarks[16];
     const pinky = landmarks[20];
-    const wrist = landmarks[0];
     const palmWidth = Math.max(0.04, Math.hypot(landmarks[5].x - landmarks[17].x, landmarks[5].y - landmarks[17].y));
     const pinchDistance = Math.hypot(thumb.x - index.x, thumb.y - index.y) / palmWidth;
     const pinch = pinchDistance < 0.42;
