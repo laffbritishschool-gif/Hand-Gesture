@@ -44,36 +44,18 @@ $("camera-button").addEventListener("click", async () => {
         $("camera-placeholder").classList.add("hidden");
         $("camera-live").classList.add("visible");
         $("camera-button").textContent = "STOP CAMERA";
-        $("camera-button").classList.remove("secondary");
         setGestureLabel("Show one hand", "Hand tracking active");
       }
     },
     onGesture: (gesture) => {
       switch (gesture.type) {
-        case "pinch":
-          mapController.zoom(gesture.delta);
-          setGestureLabel("Pinch detected", "Zooming map");
-          break;
-        case "pinch-start":
-          setGestureLabel("Pinch detected", "Adjust finger distance to zoom");
-          break;
-        case "rotate":
-          mapController.rotate(gesture.delta);
-          setGestureLabel("Open palm detected", "Rotating map");
-          break;
-        case "open-palm":
-          setGestureLabel("Open palm detected", "Move hand left or right");
-          break;
-        case "point":
-          mapController.selectAt(gesture.x, gesture.y);
-          setGestureLabel("Point detected", "Selecting location");
-          break;
-        case "none":
-          setGestureLabel("No hand detected", "Show your hand to the camera");
-          break;
-        case "hand":
-          setGestureLabel("Hand detected", "Try an open palm, pinch or point");
-          break;
+        case "pinch": mapController.zoom(gesture.delta); setGestureLabel("Pinch detected", "Zooming map"); break;
+        case "pinch-start": setGestureLabel("Pinch detected", "Adjust finger distance to zoom"); break;
+        case "rotate": mapController.rotate(gesture.delta); setGestureLabel("Open palm detected", "Rotating map"); break;
+        case "open-palm": setGestureLabel("Open palm detected", "Move hand left or right"); break;
+        case "point": mapController.selectAt(gesture.x, gesture.y); setGestureLabel("Point detected", "Selecting location"); break;
+        case "none": setGestureLabel("No hand detected", "Show your hand to the camera"); break;
+        case "hand": setGestureLabel("Hand detected", "Try an open palm, pinch or point"); break;
       }
     }
   });
@@ -85,6 +67,7 @@ $("camera-button").addEventListener("click", async () => {
     tracker = null;
     $("camera-state").textContent = "Camera could not start";
     $("camera-placeholder").classList.remove("hidden");
+    $("camera-live").classList.remove("visible");
     $("camera-button").textContent = "TRY AGAIN";
     showToast(error.message || "Unable to start the camera. Check browser permissions.");
   } finally {
@@ -93,16 +76,9 @@ $("camera-button").addEventListener("click", async () => {
 });
 
 $("reset-view").addEventListener("click", () => mapController.reset());
-
-$("buildings-toggle").addEventListener("change", (event) => {
-  mapController.toggleBuildings(event.target.checked);
-});
-$("labels-toggle").addEventListener("change", (event) => {
-  mapController.toggleLabels(event.target.checked);
-});
-$("effects-toggle").addEventListener("change", (event) => {
-  hologram.setVisible(event.target.checked);
-});
+$("buildings-toggle").addEventListener("change", (event) => mapController.toggleBuildings(event.target.checked));
+$("labels-toggle").addEventListener("change", (event) => mapController.toggleLabels(event.target.checked));
+$("effects-toggle").addEventListener("change", (event) => hologram.setVisible(event.target.checked));
 
 $("search-form").addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -112,10 +88,7 @@ $("search-form").addEventListener("submit", async (event) => {
   button.disabled = true;
   try {
     const places = await searchPlace(query);
-    if (!places.length) {
-      showToast("No matching location found. Try another search.");
-      return;
-    }
+    if (!places.length) { showToast("No matching location found. Try another search."); return; }
     const place = places[0];
     mapController.flyTo(place.center, 14);
     $("map-location").textContent = [place.name, place.place].filter(Boolean).join(", ");
@@ -128,10 +101,7 @@ $("search-form").addEventListener("submit", async (event) => {
 });
 
 $("locate-button").addEventListener("click", () => {
-  if (!navigator.geolocation) {
-    showToast("Location services are not available in this browser.");
-    return;
-  }
+  if (!navigator.geolocation) { showToast("Location services are not available in this browser."); return; }
   $("locate-button").textContent = "◎ Finding your location…";
   navigator.geolocation.getCurrentPosition(
     ({ coords }) => {
@@ -157,12 +127,13 @@ $("help-panel").addEventListener("click", (event) => {
 window.addEventListener("holodesk:location", ({ detail }) => {
   showToast(`Selected: ${detail.lat.toFixed(5)}°, ${detail.lng.toFixed(5)}°`);
 });
-
-window.addEventListener("beforeunload", () => {
-  tracker?.stop();
-  hologram.destroy();
-});
+window.addEventListener("beforeunload", () => { tracker?.stop(); hologram.destroy(); });
+window.addEventListener("resize", () => mapController.map.resize());
 
 mapController.map.on("load", () => {
   $("map-location").textContent = "Lagos, Nigeria";
+  mapController.map.resize();
+});
+mapController.map.on("error", (event) => {
+  console.error("HoloDesk map error:", event.error || event);
 });
