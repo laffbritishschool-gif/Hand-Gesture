@@ -76,23 +76,7 @@ async function requestCamera() {
       }
     });
     tracker.stream = stream;
-    tracker.running = true;
-    tracker.videoTrack = stream.getVideoTracks()[0];
-    tracker.videoTrack?.addEventListener("ended", () => {
-      tracker = null;
-      $("camera-state").textContent = "Camera disconnected";
-      $("permission-camera-status").textContent = "Camera disconnected";
-      $("camera-placeholder").classList.remove("hidden");
-      $("camera-live").classList.remove("visible");
-    }, { once: true });
-    // Load hand model after preview is already running.
-    tracker.startTrackingOnly?.();
-    const tracking = tracker;
-    (async () => {
-      try {
-        await tracking.loadModelAndDetect?.();
-      } catch (e) { console.error("Gesture model error:", e); }
-    })();
+    await tracker.start();
   } catch (error) {
     const reason = error.name === "NotAllowedError"
       ? "Camera permission was blocked. Set Camera to Allow in Chrome site settings and try again."
