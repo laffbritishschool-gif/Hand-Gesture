@@ -72,8 +72,8 @@ h1 em { font-style: normal; color: var(--cyan); text-shadow: 0 0 24px rgba(81, 2
 .setting-row { display: flex; align-items: center; justify-content: space-between; color: #9bb5bd; font-size: 9px; margin: 11px 0; }
 .switch { position: relative; width: 28px; height: 15px; display: inline-block; }.switch input { opacity: 0; width: 0; height: 0; }.switch span { position: absolute; inset: 0; border: 1px solid #345563; background: #122a36; border-radius: 10px; transition: .2s; cursor: pointer; }.switch span::before { content: ""; position: absolute; width: 9px; height: 9px; top: 2px; left: 2px; background: #66838d; border-radius: 50%; transition: .2s; }.switch input:checked + span { border-color: #39b9c8; background: #164451; }.switch input:checked + span::before { transform: translateX(12px); background: #72f3fa; box-shadow: 0 0 7px #54e8f2; }
 .sidebar-footer { margin-top: auto; border-top: 1px solid var(--line); padding-top: 13px; color: #54717c; font-size: 7px; letter-spacing: .1em; display: flex; align-items: center; gap: 7px; }.sidebar-footer span:last-child { margin-left: auto; }
-.map-workspace { min-width: 0; position: relative; overflow: hidden; background: #081722; }
-#map { position: absolute; inset: 0; }
+.map-workspace { min-width: 0; min-height: 0; position: relative; overflow: hidden; background: #081722; }
+#map { position: absolute; z-index: 0; inset: 0; min-height: 100%; }
 .map-vignette { position: absolute; inset: 0; z-index: 1; pointer-events: none; box-shadow: inset 0 0 130px rgba(2, 9, 16, .42); background: linear-gradient(180deg, rgba(4, 13, 21, .27), transparent 22%, transparent 78%, rgba(4, 13, 21, .3)); }
 #hologram-layer { position: absolute; z-index: 2; inset: 0; pointer-events: none; opacity: .9; transition: opacity .25s; mix-blend-mode: screen; }
 #hologram-layer canvas { display: block; width: 100%; height: 100%; }
