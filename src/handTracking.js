@@ -26,14 +26,21 @@ export class HandTracking {
     const vision = await FilesetResolver.forVisionTasks(
       `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${WASM_VERSION}/wasm`
     );
-    this.landmarker = await HandLandmarker.createFromOptions(vision, {
+    const options = {
       baseOptions: { modelAssetPath: MODEL_URL, delegate: "GPU" },
       runningMode: "VIDEO",
       numHands: 1,
       minHandDetectionConfidence: 0.55,
       minHandPresenceConfidence: 0.55,
       minTrackingConfidence: 0.5
-    });
+    };
+    try {
+      this.landmarker = await HandLandmarker.createFromOptions(vision, options);
+    } catch (gpuError) {
+      // Some browsers or devices cannot initialize the GPU delegate.
+      options.baseOptions.delegate = "CPU";
+      this.landmarker = await HandLandmarker.createFromOptions(vision, options);
+    }
 
     this.stream = await navigator.mediaDevices.getUserMedia({
       audio: false,
