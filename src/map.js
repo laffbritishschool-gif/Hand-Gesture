@@ -63,9 +63,12 @@ export function createHoloMap() {
     reset() { map.flyTo({ center: LAGOS.center, zoom: LAGOS.zoom, bearing: LAGOS.bearing, pitch: LAGOS.pitch, duration: 1300 }); },
     rotate(delta) { map.rotateTo(map.getBearing() + delta, { duration: 0 }); },
     zoom(delta) { map.setZoom(Math.max(2, Math.min(19, map.getZoom() + delta))); },
-    selectAt(x, y) {
+    selectAt(normalizedX, normalizedY) {
       const rect = map.getContainer().getBoundingClientRect();
-      const point = new maplibregl.Point(x - rect.left, y - rect.top);
+      const point = new maplibregl.Point(
+        Math.max(0, Math.min(rect.width, normalizedX * rect.width)),
+        Math.max(0, Math.min(rect.height, normalizedY * rect.height))
+      );
       map.fire("click", { point, lngLat: map.unproject(point) });
     },
     flyTo(center, zoom = 14) { map.flyTo({ center, zoom, pitch: 58, duration: 1800 }); },
