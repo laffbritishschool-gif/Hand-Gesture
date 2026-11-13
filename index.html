@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#050b14" />
+    <meta name="description" content="HoloDesk — an experimental hand-controlled holographic map interface." />
+    <title>HoloDesk — Gesture Interface</title>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="/" aria-label="HoloDesk home">
+          <span class="brand-mark"><span></span><span></span><span></span></span>
+          <span>HOLO<span class="brand-light">DESK</span></span>
+        </a>
+        <div class="topbar-center"><span class="live-dot"></span> SPATIAL INTERFACE <span class="topbar-divider">/</span> BETA 01</div>
+        <div class="topbar-right">
+          <span class="connection-indicator"><span class="live-dot"></span> SYSTEM READY</span>
+          <button class="icon-button" id="help-button" aria-label="Show gesture help" title="Gesture guide">?</button>
+        </div>
+      </header>
+
+      <main class="workspace">
+        <aside class="sidebar">
+          <div class="eyebrow">CONTROL DECK <span>01 / 04</span></div>
+          <h1>Move beyond<br /><em>the screen.</em></h1>
+          <p class="intro">Explore the world with natural hand movements. Start your camera to activate gesture control.</p>
+
+          <section class="control-section">
+            <div class="section-heading"><span>01</span> LOCATION</div>
+            <form id="search-form" class="search-form">
+              <label class="sr-only" for="location-search">Search a location</label>
+              <input id="location-search" type="search" placeholder="Search any location..." autocomplete="off" />
+              <button type="submit" aria-label="Search location"><span>⌕</span></button>
+            </form>
+            <button class="text-action" id="locate-button"><span>◎</span> Use my current location</button>
+          </section>
+
+          <section class="control-section">
+            <div class="section-heading"><span>02</span> GESTURE ENGINE</div>
+            <div class="camera-card">
+              <div class="camera-preview" id="camera-preview">
+                <video id="webcam" autoplay playsinline muted></video>
+                <div class="camera-placeholder" id="camera-placeholder">
+                  <div class="camera-orbit"><span></span></div>
+                  <span>CAMERA STANDBY</span>
+                </div>
+                <div class="camera-corner top-left"></div><div class="camera-corner top-right"></div>
+                <div class="camera-corner bottom-left"></div><div class="camera-corner bottom-right"></div>
+                <span class="camera-live" id="camera-live">LIVE</span>
+              </div>
+              <div class="camera-controls">
+                <div><strong id="camera-state">Camera offline</strong><small id="gesture-state">Waiting for activation</small></div>
+                <button class="primary-button" id="camera-button">START CAMERA</button>
+              </div>
+            </div>
+            <div class="gesture-list">
+              <div class="gesture-row"><span class="gesture-icon">✋</span><span><b>Open palm</b><small>Move map left / right</small></span><kbd>ROTATE</kbd></div>
+              <div class="gesture-row"><span class="gesture-icon">🤏</span><span><b>Pinch</b><small>Bring fingers together / apart</small></span><kbd>ZOOM</kbd></div>
+              <div class="gesture-row"><span class="gesture-icon">☝</span><span><b>Point</b><small>Point at a place to select</small></span><kbd>SELECT</kbd></div>
+            </div>
+          </section>
+
+          <section class="control-section map-settings">
+            <div class="section-heading"><span>03</span> MAP DISPLAY</div>
+            <div class="setting-row"><span>3D buildings</span><label class="switch"><input type="checkbox" id="buildings-toggle" checked /><span></span></label></div>
+            <div class="setting-row"><span>Map labels</span><label class="switch"><input type="checkbox" id="labels-toggle" checked /><span></span></label></div>
+            <div class="setting-row"><span>Holographic effects</span><label class="switch"><input type="checkbox" id="effects-toggle" checked /><span></span></label></div>
+          </section>
+          <div class="sidebar-footer"><span class="footer-pulse"></span> HOLODESK PROTOTYPE <span>v1.0.0</span></div>
+        </aside>
+
+        <section class="map-workspace" aria-label="Interactive holographic map">
+          <div id="map"></div>
+          <div class="map-vignette"></div>
+          <div id="hologram-layer" aria-hidden="true"></div>
+          <div class="map-top-left">
+            <div class="coordinate-card"><span class="eyebrow">CURRENT VIEW</span><strong id="coordinates">6.5244° N, 3.3792° E</strong><small id="map-location">Lagos, Nigeria</small></div>
+          </div>
+          <div class="map-top-right">
+            <div class="map-chip"><span class="live-dot"></span> LIVE MAP DATA</div>
+            <button class="map-tool" id="reset-view" title="Reset map view" aria-label="Reset map view">⌖</button>
+          </div>
+          <div class="map-bottom-left">
+            <div class="gesture-status"><span class="status-ring"></span><div><small>GESTURE INPUT</small><strong id="gesture-feedback">Awaiting hands</strong></div></div>
+          </div>
+          <div class="map-bottom-right">
+            <div class="map-hint"><span>DRAG</span> PAN <i></i><span>SCROLL</span> ZOOM <i></i><span>RIGHT-DRAG</span> ROTATE</div>
+            <div class="map-attribution">Map data © OpenStreetMap contributors · Map style by OpenFreeMap</div>
+          </div>
+          <div class="selection-toast" id="selection-toast" role="status"></div>
+          <div class="help-panel" id="help-panel" hidden>
+            <button id="close-help" aria-label="Close help">×</button>
+            <span class="eyebrow">QUICK GUIDE</span>
+            <h2>Control the map with your hand</h2>
+            <p><b>Open palm:</b> Move your hand horizontally to rotate the map.</p>
+            <p><b>Pinch:</b> Move thumb and index finger together or apart to zoom.</p>
+            <p><b>Point:</b> Extend your index finger and point at the map to select a location.</p>
+            <p class="help-note">Good lighting and a clear view of one hand help tracking. You can always use your mouse and keyboard too.</p>
+          </div>
+        </section>
+      </main>
+      <footer class="mobile-footer">HOLODESK <span>— EXPERIMENTAL SPATIAL UI</span></footer>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
