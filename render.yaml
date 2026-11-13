@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: holodesk
+    runtime: static
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    pullRequestPreviewsEnabled: true
