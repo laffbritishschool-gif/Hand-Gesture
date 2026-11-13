@@ -26,7 +26,7 @@
         <aside class="sidebar">
           <div class="eyebrow">CONTROL DECK <span>01 / 04</span></div>
           <h1>Move beyond<br /><em>the screen.</em></h1>
-          <p class="intro">Explore the world with natural hand movements. Start your camera to activate gesture control.</p>
+          <p class="intro">Explore the world with natural hand movements. Enable camera access first to activate the live preview and gesture control.</p>
 
           <section class="control-section">
             <div class="section-heading"><span>01</span> LOCATION</div>
@@ -45,15 +45,15 @@
                 <video id="webcam" autoplay playsinline muted></video>
                 <div class="camera-placeholder" id="camera-placeholder">
                   <div class="camera-orbit"><span></span></div>
-                  <span>CAMERA STANDBY</span>
+                  <span>CLICK ENABLE CAMERA</span>
                 </div>
                 <div class="camera-corner top-left"></div><div class="camera-corner top-right"></div>
                 <div class="camera-corner bottom-left"></div><div class="camera-corner bottom-right"></div>
                 <span class="camera-live" id="camera-live">LIVE</span>
               </div>
               <div class="camera-controls">
-                <div><strong id="camera-state">Camera offline</strong><small id="gesture-state">Waiting for activation</small></div>
-                <button class="primary-button" id="camera-button">START CAMERA</button>
+                <div><strong id="camera-state">Camera permission needed</strong><small id="gesture-state">Click ENABLE CAMERA and allow access in your browser.</small></div>
+                <button class="primary-button" id="camera-button">ENABLE CAMERA</button>
               </div>
             </div>
             <div class="gesture-list">
