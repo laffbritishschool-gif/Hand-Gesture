@@ -4,10 +4,11 @@ const WASM_VERSION = "0.10.14";
 const MODEL_URL = "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task";
 
 export class HandTracking {
-  constructor({ video, onGesture, onStatus }) {
+  constructor({ video, onGesture, onStatus, onTrackingStatus }) {
     this.video = video;
     this.onGesture = onGesture;
     this.onStatus = onStatus;
+    this.onTrackingStatus = onTrackingStatus;
     this.landmarker = null;
     this.stream = null;
     this.running = false;
@@ -24,14 +25,23 @@ export class HandTracking {
     }
 
     // Start the webcam first so the user sees the live preview immediately.
-    this.onStatus?.("Requesting camera permission…");
+    this.onStatus?.("Camera starting…");
     this.stream = await navigator.mediaDevices.getUserMedia({
       audio: false,
       video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } }
     });
     this.video.srcObject = this.stream;
     await this.video.play();
-    this.onStatus?.("Camera active — loading hand tracking…");
+    this.onStatus?.("Camera online");
+    this.onTrackingStatus?.("Loading hand-tracking model…");
+    this.videoTrack = this.stream.getVideoTracks()[0];
+    this.videoTrack?.addEventListener("ended", () => {
+      if (this.stream) {
+        this.running = false;
+        this.onStatus?.("Camera disconnected");
+        this.onTrackingStatus?.("Camera connection ended");
+      }
+    }, { once: true });
 
     try {
       const vision = await FilesetResolver.forVisionTasks(
@@ -57,7 +67,7 @@ export class HandTracking {
     }
 
     this.running = true;
-    this.onStatus?.("Camera active — show one hand");
+    this.onTrackingStatus?.("Hand tracking ready — show one hand");
     this.detect();
   }
 
@@ -133,5 +143,6 @@ export class HandTracking {
     this.landmarker?.close();
     this.landmarker = null;
     this.onStatus?.("Camera offline");
+    this.onTrackingStatus?.("Waiting for activation");
   }
 }
